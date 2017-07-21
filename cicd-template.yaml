@@ -40,6 +40,10 @@ parameters:
   value: dev
   name: DEV_PROJECT
   required: true
+- displayName: TEST project name
+  value: test
+  name: TEST_PROJECT
+  required: true
 - displayName: STAGE project name
   value: stage
   name: STAGE_PROJECT
@@ -130,6 +134,22 @@ objects:
                sh "oc expose svc/tasks -n ${DEV_PROJECT}"
              }
 
+             stage ('Deploy TEST') {
+               timeout(time:5, unit:'MINUTES') {
+                  input message: "Promote to TEST?", ok: "Promote"
+               }
+
+               def v = version()
+               // tag for stage
+               sh "oc tag ${DEV_PROJECT}/tasks:latest ${TEST_PROJECT}/tasks:${v}"
+               sh "oc project ${TEST_PROJECT}"
+               // clean up. keep the imagestream
+               sh "oc delete bc,dc,svc,route -l app=tasks -n ${TEST_PROJECT}"
+               // deploy stage image
+               sh "oc new-app tasks:${v} -n ${TEST_PROJECT}"
+               sh "oc expose svc/tasks -n ${TEST_PROJECT}"
+             }
+
              stage ('Deploy STAGE') {
                timeout(time:5, unit:'MINUTES') {
                   input message: "Promote to STAGE?", ok: "Promote"
@@ -137,7 +157,7 @@ objects:
 
                def v = version()
                // tag for stage
-               sh "oc tag ${DEV_PROJECT}/tasks:latest ${STAGE_PROJECT}/tasks:${v}"
+               sh "oc tag ${TEST_PROJECT}/tasks:${v} ${STAGE_PROJECT}/tasks:${v}"
                sh "oc project ${STAGE_PROJECT}"
                // clean up. keep the imagestream
                sh "oc delete bc,dc,svc,route -l app=tasks -n ${STAGE_PROJECT}"
