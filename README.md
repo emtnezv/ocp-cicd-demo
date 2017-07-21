@@ -27,6 +27,7 @@ Follow these [instructions](docs/oc-cluster.md) in order to create a local OpenS
 
   ```
   oc new-project dev --display-name="Tasks - Dev"
+  oc new-project test --display-name="Tasks - Test"
   oc new-project stage --display-name="Tasks - Stage"
   oc new-project cicd --display-name="CI/CD"
   ```
@@ -35,6 +36,7 @@ Jenkins needs to access OpenShift API to discover slave images as well accessing
 
   ```
   oc policy add-role-to-user edit system:serviceaccount:cicd:jenkins -n dev
+  oc policy add-role-to-user edit system:serviceaccount:cicd:jenkins -n test
   oc policy add-role-to-user edit system:serviceaccount:cicd:jenkins -n stage
   ```
 Create the CI/CD components based on the provided template
@@ -47,7 +49,7 @@ To use custom project names, change `cicd`, `dev` and `stage` in the above comma
 your own names and use the following to create the demo:
 
   ```
-  oc process -f cicd-template.yaml -v DEV_PROJECT=dev-project-name -v STAGE_PROJECT=stage-project-name | oc create -f - -n cicd-project-name
+  oc process -f cicd-template.yaml -v DEV_PROJECT=dev-project-name -v TEST_PROJECT=test-project-name -v STAGE_PROJECT=stage-project-name | oc create -f - -n cicd-project-name
   ```
 
 __Note:__ you need ~8GB memory for running this demo.
