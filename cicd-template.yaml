@@ -11,7 +11,7 @@ metadata:
     iconClass: icon-jenkins
     tags: instant-app,jenkins,gogs,nexus,cicd
   name: cicd
-message: The CI/CD infrastructure composed of Jenkins, Gogs, Nexus Repository and SonarQube services has been created in your project.  Jenkins username/password are admin/${JENKINS_PASSWORD} and Gogs username/password are gogs/${GOGS_PASSWORD}.  The tutorial at https://github.com/OpenShiftDemos/openshift-cd-demo/tree/openshift-3.3 contains more information about using this CI/CD demo.
+message: The CI/CD infrastructure composed of Jenkins, Gogs, Nexus Repository and SonarQube services has been created in your project.  Jenkins username/password are admin/${JENKINS_PASSWORD} and Gogs username/password are gogs/${GOGS_PASSWORD}.  The tutorial at https://github.com/emtnezv/ocp-cicd-demo/tree/openshift-3.5 contains more information about using this CI/CD demo.
 parameters:
 - description: Password for the Gogs user.
   displayName: Gogs Password
@@ -99,7 +99,7 @@ objects:
              def mvnCmd = "mvn -s configuration/cicd-settings.xml"
 
              stage ('Build') {
-               git branch: 'eap-7', url: 'http://gogs:3000/gogs/openshift-tasks.git'
+               git branch: 'eap-7', url: 'http://gogs:3000/gogs/ocp-app-tasks.git'
                sh "${mvnCmd} clean install -DskipTests=true"
              }
 
@@ -121,7 +121,7 @@ objects:
 
              stage ('Deploy DEV') {
                sh "rm -rf oc-build && mkdir -p oc-build/deployments"
-               sh "cp target/openshift-tasks.war oc-build/deployments/ROOT.war"
+               sh "cp target/ocp-app-tasks.war oc-build/deployments/ROOT.war"
                sh "oc project ${DEV_PROJECT}"
                // clean up. keep the image stream
                sh "oc delete bc,dc,svc,route -l app=tasks -n ${DEV_PROJECT}"
@@ -671,9 +671,9 @@ objects:
       # import github repository
       cat <<EOF > /tmp/data.json
       {
-        "clone_addr": "https://github.com/OpenShiftDemos/openshift-tasks.git",
+        "clone_addr": "https://github.com/emtnezv/ocp-app-tasks.git",
         "uid": 1,
-        "repo_name": "openshift-tasks"
+        "repo_name": "ocp-app-tasks"
       }
       EOF
 
@@ -682,7 +682,7 @@ objects:
 
       if [ $RETURN != "201" ]
       then
-        echo "ERROR: Failed to imported openshift-tasks GitHub repo"
+        echo "ERROR: Failed to imported ocp-app-tasks GitHub repo"
         exit 255
       fi
 
@@ -704,7 +704,7 @@ objects:
       EOF
 
       RETURN=$(curl -o /dev/null -sL -w "%{http_code}" -H "Content-Type: application/json" \
-      -u gogs:${GOGS_PASSWORD} -X POST http://$GOGSSVC:3000/api/v1/repos/gogs/openshift-tasks/hooks -d @/tmp/data.json)
+      -u gogs:${GOGS_PASSWORD} -X POST http://$GOGSSVC:3000/api/v1/repos/gogs/ocp-app-tasks/hooks -d @/tmp/data.json)
 
       if [ $RETURN != "201" ]
       then
